@@ -31,7 +31,7 @@ app.listen(port, () => {
     console.log(`API listening on port ${port}`)
 })
 
-const locationsModel = z.array(z.tuple([z.number(), z.number(), z.string()], {error: "Locations should be: [number, string, string]"})).min(1)
+const locationsModel = z.array(z.tuple([z.number(), z.number(), z.string()], { error: "Locations should be: [number, string, string]" })).min(1)
 
 async function start() {
     console.time("Starting API")
@@ -65,13 +65,25 @@ async function start() {
             })
         }
         const { success, data, error } = locationsModel.safeParse(areas)
-        if (!success || error) return res.json({
+        if (!success || error) res.json({
             error: 400,
             message: `Invalid query parameter "locations": ${z.treeifyError(error).errors.join(", ")}`
         })
-        const propertyCount = (await getProperties(headers, data)).found
-        const propertyIndex = Math.floor(Math.random() * propertyCount)
-        res.json(await getProperties(headers, data, 1, propertyIndex))
+        else {
+            const propertyCount = (await getProperties(headers, data)).found
+            const propertyIndex = Math.floor(Math.random() * propertyCount)
+            res.json(await getProperties(headers, data, 1, propertyIndex))
+        }
+    })
+    app.get(`/proxy/{*path}`, async (req, res) => {
+        // @ts-ignore
+        const path = req.originalUrl.replace("/proxy", "")
+        if (!path) res.json({
+            error: 400,
+            message: "path property needed"
+        })
+        console.log("https://asunnot.oikotie.fi/api" + path)
+        res.send(await fetchJson("https://asunnot.oikotie.fi/api" + path, headers))
     })
 
     console.timeEnd("Starting API")
