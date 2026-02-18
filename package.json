@@ -1,0 +1,18 @@
+{
+  "name": "oikotie-collector",
+  "version": "0.1.0",
+  "description": "Scrapes asunnot.oikotie.fi real estate site",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.2.1",
+    "playwright": "^1.58.2",
+    "zod": "^4.3.6"
+  }
+}
