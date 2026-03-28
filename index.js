@@ -4,10 +4,18 @@ import { firefox } from "playwright"
 import { rateLimit } from "express-rate-limit"
 import express from "express"
 import z from "zod"
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const SERVICE_ID = "0834c6dc-af45-4fc5-a34b-894b58f946ff"
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+    identifier: (req, res) => typeof req.query["hekinav-token"],
     standardHeaders: 'draft-8',
     legacyHeaders: false,
     ipv6Subnet: 56,
@@ -18,13 +26,38 @@ const port = 3008
 
 let isReady = false
 
+app.use(async (req, res, next) => {
+    // Allow docs
+    if (req.path == "/") return next()
+    let authState = false
+    if (!req.query["hekinav-token"]) return res.json({
+        error: 401,
+        message: "Please provide token (hekinav-token) as a URL parameter"
+    })
+    try {
+        console.time("auth")
+        authState = (await (await fetch(`https://api-portal.hekinav.dev/api/auth?sid=${SERVICE_ID}&token=${req.query["hekinav-token"]}`)).json())
+        console.timeEnd("auth")
+        console.log(`https://api-portal.hekinav.dev/api/auth?sid=${SERVICE_ID}&token=${req.query["hekinav-token"]}`)
+        return next()
+    } catch (error) {
+        console.error(error)
+        return res.json({
+            error: 500,
+            message: "Error validating token"
+        })
+    }
+})
+
 app.use((req, res, next) => {
-    if (!isReady) res.json({
+    if (req.path == "/") return next()
+    if (!isReady) return res.json({
         error: 500,
         message: "API not ready yet. Please try again in a moment."
     })
     next()
 })
+
 app.use(limiter)
 
 app.listen(port, () => {
@@ -35,6 +68,13 @@ const locationsModel = z.array(z.tuple([z.number(), z.number(), z.string()], { e
 
 async function start() {
     console.time("Starting API")
+
+    app.get("/", (req, res) => {
+        res.sendFile(__dirname + "/docs.html")
+    })
+
+    console.timeLog("Starting API", "Launching browser")
+
     const browser = await firefox.launch()
     const context = await browser.newContext()
     const page = await context.newPage()
@@ -64,6 +104,7 @@ async function start() {
                 message: "Invalid or missing query parameter: locations"
             })
         }
+        if (!areas) return
         const { success, data, error } = locationsModel.safeParse(areas)
         if (!success || error) res.json({
             error: 400,
@@ -74,6 +115,9 @@ async function start() {
             const propertyIndex = Math.floor(Math.random() * propertyCount)
             res.json(await getProperties(headers, data, 1, propertyIndex))
         }
+    })
+    app.get(`/headers`, (req, res) => {
+        res.json(headers)
     })
     app.get(`/proxy/{*path}`, async (req, res) => {
         // @ts-ignore
