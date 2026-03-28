@@ -35,9 +35,7 @@ app.use(async (req, res, next) => {
         message: "Please provide token (hekinav-token) as a URL parameter"
     })
     try {
-        console.time("auth")
         authState = (await (await fetch(`https://api-portal.hekinav.dev/api/auth?sid=${SERVICE_ID}&token=${req.query["hekinav-token"]}`)).json())
-        console.timeEnd("auth")
         console.log(`https://api-portal.hekinav.dev/api/auth?sid=${SERVICE_ID}&token=${req.query["hekinav-token"]}`)
         return next()
     } catch (error) {
@@ -117,7 +115,17 @@ async function start() {
         }
     })
     app.get(`/headers`, (req, res) => {
-        res.json(headers)
+        const allowedHeaders = [
+            "ota-token",
+            "ota-loaded",
+            "ota-cuid",
+            "cookie"
+        ]
+        res.json(
+            Object.entries(headers)
+            .filter(([key]) => allowedHeaders.some(h => key == h))
+            .reduce((prev, [k, v]) => ({...prev, [k]:v}),{})
+        )
     })
     app.get(`/proxy/{*path}`, async (req, res) => {
         // @ts-ignore

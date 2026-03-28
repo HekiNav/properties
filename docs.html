@@ -1,19 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Docs for Hekinav Oikotie API</title>
 </head>
+
 <body>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        a {
+            color: #16a34a;
+        }
+
+        hr {
+            border: #16a34a 2px solid;
+        }
+    </style>
     <h1>Docs for Hekinav Oikotie Proxy API</h1>
-    <h2>Endpoints</h2>
+    <hr>
+    <h2>This API requires authentication</h2>
+    <p>This API uses the Hekinav API Token system. To access, create an application with this API in <a target="_blank"
+            href="https://api-portal.hekinav.dev/applications?create&sid=0834c6dc-af45-4fc5-a34b-894b58f946ff">the API
+            portal</a></p>
+    <br>
+    <p></p>
+    <h2 id="endpoints">Endpoints</h2>
+    <hr>
     <h3>Docs: <a href="#">/</a></h3>
     <p>Returns this page</p>
-    <br>
-    <h3>Random property: <a href="/randomProperty">/randomProperty</a></h3>
+    <h3 id="randomProperty">Random property: <a href="/randomProperty">/randomProperty?locations={locations}</a></h3>
     <p>Returns a random property in the specified region</p>
     <h4>Parameters:</h4>
-    <b>locations:</b> [number, number, string][] (example: [[39, 6, "Espoo"]])
+    <b>locations:</b> [number, number, string][] (example: <a href="/randomProperty?locations=[[39, 6, 'Espoo']]">[[39,
+        6, "Espoo"]]</a>)
+    <br>
+    <br>
+    <h3>General proxy: <a href="/proxy/">/proxy/{path}</a></h3>
+    <p>Returns a random property in the specified region</p>
+    <h4>Parameters:</h4>
+    <b>path:</b> any oikotie API path (<a href="https://docs.asunnot.oikotie.fi/api/5.0/">docs</a>) (example: <a
+        href="/proxy/search?locations=[[39,1, 'Espoo']]&limit=3">/search?locations=[[39,1, "Espoo"]]&limit=3</a>)
+    <br>
+    <br>
+    <h3>Headers: <a href="/headers">/headers</a></h3>
+    <p>Returns headers that can be used to authenticate Oikotie API requests</p>
+    <h4>Parameters:</h4>
+    none
 </body>
+
 </html>
